@@ -1,6 +1,18 @@
+# Core app
 streamlit
-requests
-numpy
+
+# Data handling
 pandas
-fuzzywuzzy
-python-Levenshtein
+numpy
+
+# HTTP requests
+requests
+
+# Technical analysis indicators
+ta
+
+# Finance data (used in alternative API fallback)
+yfinance
+
+# (Optional but recommended for reproducibility)
+python-dateutil
