@@ -1,0 +1,6 @@
+streamlit
+requests
+numpy
+pandas
+fuzzywuzzy
+python-Levenshtein
