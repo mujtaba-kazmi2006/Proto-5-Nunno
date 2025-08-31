@@ -12,6 +12,72 @@ from fuzzywuzzy import process
 import time
 from typing import Dict, List, Optional, Tuple
 import json
+import streamlit as st
+import time
+import base64
+from pathlib import Path
+
+# --- Opening Page Logic ---
+if "splash_shown" not in st.session_state:
+    st.session_state["splash_shown"] = False
+
+if not st.session_state["splash_shown"]:
+    # Hide Streamlit default UI
+    hide = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stApp {background-color: black !important;} /* force full black bg */
+    html, body, [data-testid="stAppViewContainer"] {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        background-color: black !important;
+    }
+    </style>
+    """
+    st.markdown(hide, unsafe_allow_html=True)
+
+    # Load logo.png from local repo (root folder)
+    logo_path = Path("logo.png")
+    if logo_path.exists():
+        with open(logo_path, "rb") as f:
+            logo_data = f.read()
+        logo_b64 = base64.b64encode(logo_data).decode()
+        logo_src = f"data:image/png;base64,{logo_b64}"
+    else:
+        logo_src = ""  # fallback
+
+    # Splash Screen (fade + breathing + blur)
+    splash_html = f"""
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+                display: flex; justify-content: center; align-items: center;
+                background-color: black; z-index: 9999;">
+        {"<img src='"+logo_src+"' class='breathing-logo'>" if logo_src else "<h1 style='color:white; font-size:3em;'>Nunno</h1>"}
+    </div>
+
+    <style>
+    @keyframes fadeBreathBlur {{
+      0%   {{ opacity: 0; transform: scale(0.95); filter: blur(5px); }}
+      20%  {{ opacity: 1; transform: scale(1.05); filter: blur(0px); }}
+      70%  {{ opacity: 1; transform: scale(1.08); filter: blur(0px); }}
+      100% {{ opacity: 0; transform: scale(1.2); filter: blur(12px); }}
+    }}
+    .breathing-logo {{
+        width: 30vw;
+        max-width: 300px;
+        animation: fadeBreathBlur 3s ease-in-out forwards;
+    }}
+    </style>
+    """
+    st.markdown(splash_html, unsafe_allow_html=True)
+
+    # Wait, then rerun main app
+    time.sleep(3)
+    st.session_state["splash_shown"] = True
+    st.rerun()
 
 # Try importing local modules (optional - prediction & monte carlo features)
 try:
