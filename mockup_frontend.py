@@ -50,7 +50,7 @@ if not st.session_state["splash_shown"]:
     else:
         logo_src = ""  # fallback
 
-    # Splash Screen (fade + breathing + blur)
+    # Splash Screen (fade + breathing + blur, responsive logo)
     splash_html = f"""
     <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
                 display: flex; justify-content: center; align-items: center;
@@ -66,8 +66,7 @@ if not st.session_state["splash_shown"]:
       100% {{ opacity: 0; transform: scale(1.2); filter: blur(12px); }}
     }}
     .breathing-logo {{
-        width: 30vw;
-        max-width: 600px;
+        width: clamp(150px, 50vw, 350px); /* responsive: min 150px, prefer 50% of screen, max 350px */
         animation: fadeBreathBlur 3s ease-in-out forwards;
     }}
     </style>
@@ -2172,4 +2171,5 @@ with col2:
             if st.button("Clear Analysis", key="clear_analysis"):
                 st.session_state.chart_analysis = None
                 st.rerun()
+
 
