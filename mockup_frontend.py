@@ -67,7 +67,7 @@ if not st.session_state["splash_shown"]:
     }}
     .breathing-logo {{
         width: 30vw;
-        max-width: 300px;
+        max-width: 600px;
         animation: fadeBreathBlur 3s ease-in-out forwards;
     }}
     </style>
@@ -2172,3 +2172,4 @@ with col2:
             if st.button("Clear Analysis", key="clear_analysis"):
                 st.session_state.chart_analysis = None
                 st.rerun()
+
