@@ -17,22 +17,6 @@ import time
 import base64
 from pathlib import Path
 
-import streamlit as st
-
-# --- HIDE STREAMLIT STYLE ---
-hide_streamlit_style = """
-    <style>
-    #MainMenu {visibility: hidden;} /* Hide hamburger menu */
-    footer {visibility: hidden;} /* Hide Streamlit footer */
-    header {visibility: hidden;} /* Hide Streamlit header */
-    .viewerBadge_container__1QSob {display: none;} /* Hide Made with Streamlit badge */
-    .stDeployButton {display: none;} /* Hide deploy button */
-    .stAppDeployButton {display: none;} 
-    .stToolbar {display: none;}
-    </style>
-"""
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
 
 # --- Opening Page Logic ---
 if "splash_shown" not in st.session_state:
@@ -2188,6 +2172,7 @@ with col2:
             if st.button("Clear Analysis", key="clear_analysis"):
                 st.session_state.chart_analysis = None
                 st.rerun()
+
 
 
 
