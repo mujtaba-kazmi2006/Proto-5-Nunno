@@ -16,7 +16,7 @@ import streamlit as st
 import time
 import base64
 from pathlib import Path
-
+import streamlit.components.v1 as components
 
 # --- Opening Page Logic ---
 if "splash_shown" not in st.session_state:
@@ -51,7 +51,7 @@ if not st.session_state["splash_shown"]:
     else:
         logo_src = ""  # fallback
 
-    # Splash Screen (fade + breathing + blur, responsive logo)
+    # Splash Screen (fade + breathing + blur)
     splash_html = f"""
     <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
                 display: flex; justify-content: center; align-items: center;
@@ -67,7 +67,8 @@ if not st.session_state["splash_shown"]:
       100% {{ opacity: 0; transform: scale(1.2); filter: blur(12px); }}
     }}
     .breathing-logo {{
-        width: clamp(150px, 50vw, 350px); /* responsive: min 150px, prefer 50% of screen, max 350px */
+        width: 30vw;
+        max-width: 300px;
         animation: fadeBreathBlur 3s ease-in-out forwards;
     }}
     </style>
@@ -84,6 +85,67 @@ try:
     import betterpredictormodule
 except Exception:
     betterpredictormodule = None
+    
+def create_mini_tradingview_widget(symbol="BTCUSDT", timeframe="15m"):
+    """Create a lightweight mini chart widget"""
+    if symbol.endswith("USDT"):
+        tv_symbol = f"BINANCE:{symbol}"
+    else:
+        tv_symbol = symbol
+    
+    # Convert timeframe for date range display
+    date_range_map = {
+        "1m": "1D", "5m": "1D", "15m": "3D", "30m": "1W",
+        "1h": "1M", "2h": "1M", "4h": "3M", "6h": "6M", 
+        "12h": "6M", "1d": "12M", "1w": "5Y", "1M": "ALL"
+    }
+    
+    date_range = date_range_map.get(timeframe, "12M")
+    
+    mini_widget_html = f"""
+    <!-- TradingView Widget BEGIN -->
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+      {{
+      "symbol": "{tv_symbol}",
+      "width": "100%",
+      "height": "400",
+      "locale": "en",
+      "dateRange": "{date_range}",
+      "colorTheme": "dark",
+      "trendLineColor": "rgba(41, 98, 255, 1)",
+      "underLineColor": "rgba(41, 98, 255, 0.3)",
+      "underLineBottomColor": "rgba(41, 98, 255, 0)",
+      "isTransparent": false,
+      "autosize": true,
+      "largeChartUrl": ""
+      }}
+      </script>
+    </div>
+    <!-- TradingView Widget END -->
+    """
+    
+    return mini_widget_html
+
+def get_tradingview_chart_url(symbol, timeframe="15m"):
+    """Generate TradingView chart URL for full chart link"""
+    # Convert timeframe
+    tv_timeframe = timeframe.replace("m", "").replace("h", "").replace("d", "D")
+    if timeframe == "1h":
+        tv_timeframe = "60"
+    elif timeframe == "4h":
+        tv_timeframe = "240"
+    
+    # Convert symbol
+    if symbol.endswith("USDT"):
+        tv_symbol = f"BINANCE:{symbol}"
+    else:
+        tv_symbol = symbol
+    
+    base_url = "https://www.tradingview.com/chart/"
+    params = f"?symbol={tv_symbol}&interval={tv_timeframe}&theme=dark"
+    return base_url + params    
 
 try:
     from montecarlo_module import simulate_trades, monte_carlo_summary
@@ -230,6 +292,58 @@ class ComprehensiveTokenomics:
             
         except Exception:
             return {}
+        
+    def create_mini_tradingview_widget(symbol="BTCUSDT"):
+        """Create a lightweight mini chart widget"""
+        if symbol.endswith("USDT"):
+            tv_symbol = f"BINANCE:{symbol}"
+        else:
+            tv_symbol = symbol
+        
+        mini_widget_html = f"""
+        <!-- TradingView Widget BEGIN -->
+        <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+        {{
+        "symbol": "{tv_symbol}",
+        "width": "100%",
+        "height": "400",
+        "locale": "en",
+        "dateRange": "12M",
+        "colorTheme": "dark",
+        "trendLineColor": "rgba(41, 98, 255, 1)",
+        "underLineColor": "rgba(41, 98, 255, 0.3)",
+        "underLineBottomColor": "rgba(41, 98, 255, 0)",
+        "isTransparent": false,
+        "autosize": true,
+        "largeChartUrl": ""
+        }}
+        </script>
+        </div>
+        <!-- TradingView Widget END -->
+        """
+        
+        return mini_widget_html
+
+    def get_tradingview_chart_url(symbol, timeframe="15m"):
+        """Generate TradingView chart URL for full chart link"""
+        # Convert timeframe
+        tv_timeframe = timeframe.replace("m", "").replace("h", "").replace("d", "D")
+        if timeframe == "1h":
+            tv_timeframe = "60"
+        elif timeframe == "4h":
+            tv_timeframe = "240"
+        
+        # Convert symbol
+        if symbol.endswith("USDT"):
+            tv_symbol = f"BINANCE:{symbol}"
+        else:
+            tv_symbol = symbol
+        
+        base_url = "https://www.tradingview.com/chart/"
+        params = f"?symbol={tv_symbol}&interval={tv_timeframe}&theme=dark"
+        return base_url + params
     
     def _calculate_returns_metrics(self, prices: List[float], days: int) -> Dict:
         """Calculate comprehensive return metrics"""
@@ -269,6 +383,8 @@ class ComprehensiveTokenomics:
             "sharpe_ratio": sharpe_ratio,
             "max_drawdown": max_dd
         }
+    
+    
     
     def _analyze_volume(self, volumes: List[float]) -> Dict:
         """Analyze trading volume patterns"""
@@ -1896,6 +2012,23 @@ with col1:
                         st.markdown("### 💡 Additional Notes")
                         st.markdown(note)
                         
+                        # Add TradingView chart
+                    if data.get("show_chart", False):
+                        st.markdown("---")
+                        st.markdown("### 📊 TradingView Chart")
+                        
+                        symbol = data.get("symbol", "BTCUSDT")
+                        timeframe = data.get("tf", "15m")
+                        
+                        # Display mini chart
+                        widget_html = create_mini_tradingview_widget(symbol)
+                        components.html(widget_html, height=400, scrolling=False)
+                        
+                        # Add link to full chart
+                        chart_url = get_tradingview_chart_url(symbol, timeframe)
+                        st.markdown(f"[🔗 Open Full Chart in TradingView]({chart_url})")
+                        
+                        
             elif kind == "montecarlo":
                 with st.chat_message("assistant"):
                     st.markdown("🧪 **Monte Carlo Simulation**")
@@ -2024,7 +2157,8 @@ with col1:
                         "strength": strength,
                         "confluences": confluences,
                         "plan": plan_text,
-                        "latest_data": latest.to_dict() if latest is not None else None
+                        "latest_data": latest.to_dict() if latest is not None else None,
+                        "show_chart" : True
                     }
                     assistant_entry["content"] = f"Completed technical analysis for {symbol} on {tf} timeframe."
                     
@@ -2172,7 +2306,3 @@ with col2:
             if st.button("Clear Analysis", key="clear_analysis"):
                 st.session_state.chart_analysis = None
                 st.rerun()
-
-
-
-
