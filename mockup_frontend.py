@@ -1,4 +1,8 @@
-# nunno_streamlit_enhanced.py
+import os, sys, pathlib
+print("CWD:", os.getcwd())
+print("Files in CWD:", os.listdir("."))
+print("Sys.path:", sys.path)
+
 import streamlit as st
 import requests
 import base64
@@ -2306,3 +2310,4 @@ with col2:
             if st.button("Clear Analysis", key="clear_analysis"):
                 st.session_state.chart_analysis = None
                 st.rerun()
+
