@@ -22,6 +22,11 @@ import base64
 from pathlib import Path
 import streamlit.components.v1 as components
 
+try:
+    import betterpredictormodule
+except Exception:
+    betterpredictormodule = None
+
 # --- Opening Page Logic ---
 if "splash_shown" not in st.session_state:
     st.session_state["splash_shown"] = False
@@ -2310,4 +2315,5 @@ with col2:
             if st.button("Clear Analysis", key="clear_analysis"):
                 st.session_state.chart_analysis = None
                 st.rerun()
+
 
