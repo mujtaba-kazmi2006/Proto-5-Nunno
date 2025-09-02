@@ -22,6 +22,10 @@ python-dateutil>=2.8.0
 # ccxt>=4.0.0
 # ta>=0.10.0
 # scikit-learn>=1.3.0
+ta>=0.10.0
+scikit-learn>=1.3.0
+ccxt>=4.0.0   # if you also use exchange data inside betterpredictormodule
+
 
 # For Monte Carlo simulation (montecarlo_module)
 # scipy>=1.11.0
