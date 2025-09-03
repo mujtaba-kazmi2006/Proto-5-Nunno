@@ -1,8 +1,5 @@
-import os, sys, pathlib
-print("CWD:", os.getcwd())
-print("Files in CWD:", os.listdir("."))
-print("Sys.path:", sys.path)
 
+# nunno_streamlit_enhanced.py
 import streamlit as st
 import requests
 import base64
@@ -21,18 +18,6 @@ import time
 import base64
 from pathlib import Path
 import streamlit.components.v1 as components
-
-import importlib.util, sys, pathlib
-
-module_path = pathlib.Path(__file__).parent / "betterpredictormodule.py"
-if module_path.exists():
-    spec = importlib.util.spec_from_file_location("betterpredictormodule", module_path)
-    betterpredictormodule = importlib.util.module_from_spec(spec)
-    sys.modules["betterpredictormodule"] = betterpredictormodule
-    spec.loader.exec_module(betterpredictormodule)
-else:
-    betterpredictormodule = None
-
 
 # --- Opening Page Logic ---
 if "splash_shown" not in st.session_state:
@@ -2133,20 +2118,60 @@ with col1:
                         break
                 
                 # Extract timeframe
-                tf = "15m"
-                tf_mappings = {
-                    "1m": "1m", "1 minute": "1m", "1min": "1m",
-                    "5m": "5m", "5 minute": "5m", "5min": "5m", 
-                    "15m": "15m", "15 minute": "15m", "15min": "15m",
-                    "1h": "1h", "1 hour": "1h", "1hr": "1h", "hourly": "1h",
-                    "4h": "4h", "4 hour": "4h", "4hr": "4h",
-                    "1d": "1d", "daily": "1d", "day": "1d"
-                }
-                
-                for key, val in tf_mappings.items():
-                    if key in lower:
-                        tf = val
-                        break
+                # Extract timeframe - IMPROVED VERSION
+                tf = "15m"  # default
+
+                # First, try regex patterns for robust matching
+                import re
+                timeframe_patterns = [
+                    (r'\b(\d+)[-_\s]*min(?:ute)?s?\b', 'm'),    # 15min, 15-min, 15 min, 15 minute
+                    (r'\b(\d+)[-_\s]*m\b(?!\w)', 'm'),          # 15m (but not 15ml, 15max etc)
+                    (r'\b(\d+)[-_\s]*h(?:our)?s?r?\b', 'h'),    # 1h, 1hr, 1 hour
+                    (r'\b(\d+)[-_\s]*d(?:ay)?s?\b', 'd'),       # 1d, 1 day
+                    (r'\b(\d+)[-_\s]*w(?:eek)?s?\b', 'w'),      # 1w, 1 week
+                ]
+
+                for pattern, unit in timeframe_patterns:
+                    match = re.search(pattern, lower)
+                    if match:
+                        number = int(match.group(1))
+                        
+                        # Validate timeframe based on unit
+                        if unit == 'm' and number in [1, 5, 15, 30]:
+                            tf = f"{number}m"
+                            break
+                        elif unit == 'h' and number in [1, 2, 4, 6, 8, 12]:
+                            tf = f"{number}h"
+                            break
+                        elif unit == 'd' and number == 1:
+                            tf = "1d"
+                            break
+                        elif unit == 'w' and number == 1:
+                            tf = "1w"
+                            break
+
+                # Fallback to keyword matching if regex didn't find anything
+                if tf == "15m":  # Only if regex didn't find a different timeframe
+                    tf_keywords = {
+                        # Most specific patterns first
+                        "fifteen minute": "15m", "fifteen min": "15m", "quarter hour": "15m",
+                        "thirty minute": "30m", "thirty min": "30m", "half hour": "30m", 
+                        "15 minute": "15m", "15minute": "15m", "15min": "15m", "15-min": "15m", "15_min": "15m", "15 min": "15m", "15m": "15m",
+                        "30 minute": "30m", "30minute": "30m", "30min": "30m", "30-min": "30m", "30_min": "30m", "30 min": "30m", "30m": "30m",
+                        "5 minute": "5m", "5minute": "5m", "5min": "5m", "5-min": "5m", "5_min": "5m", "5 min": "5m", "5m": "5m",
+                        "1 minute": "1m", "1minute": "1m", "1min": "1m", "1-min": "1m", "1_min": "1m", "1 min": "1m", "1m": "1m",
+                        "1 hour": "1h", "1hour": "1h", "1hr": "1h", "1-hr": "1h", "1_hr": "1h", "1 hr": "1h", "1h": "1h", "hourly": "1h",
+                        "4 hour": "4h", "4hour": "4h", "4hr": "4h", "4-hr": "4h", "4_hr": "4h", "4 hr": "4h", "4h": "4h",
+                        "daily": "1d", "1day": "1d", "1 day": "1d", "1d": "1d"
+                    }
+                    
+                    # Sort by length (longest first) to avoid partial matches
+                    for keyword in sorted(tf_keywords.keys(), key=len, reverse=True):
+                        if keyword in lower:
+                            tf = tf_keywords[keyword]
+                            break
+
+                print(f"DEBUG: Extracted timeframe: {tf} from input: {prompt}")  # Add this for debugging
                 
                 try:
                     analyzer = betterpredictormodule.TradingAnalyzer()
@@ -2322,6 +2347,3 @@ with col2:
             if st.button("Clear Analysis", key="clear_analysis"):
                 st.session_state.chart_analysis = None
                 st.rerun()
-
-
-
